@@ -1,0 +1,235 @@
+ 	<！DOCTYPE html >
+	< html  lang =“ en ” >
+	<头>
+	    < meta  charset =“ UTF-8 ” >
+	    < meta  name =“ viewport ” content =“ width = device-width，initial-scale = 1.0 ” >
+	    < meta  http-equiv =“ X-UA-Compatible ” content =“ ie = edge ” >
+	    <标题>画布-再次</标题>
+	    <样式>
+	        * {
+	            边距：0 ;
+	            填充：0 ;
+	            溢出：隐藏；
+	        }
+	        html ，正文{
+	            宽度：100 ％ ;
+	            高度：100 ％ ;
+	            / *背景：线性渐变（顶部，淡紫色0％，＃fff 100％）；* /
+	            背景：无重复线性渐变（到底部， ＃ dcdcdc  0 ％， ＃ 000  100 ％）;
+	        }
+	    </ style >
+	</头>
+	<身体>
+	    < canvas  id =“ canvas ” > </ canvas >
+	</ body >
+	<脚本>
+	    （函数（win ， doc ） {
+	        const  maxW  =  win 。innerWidth ;
+	        const  maxH  =  win 。innerHeight ;
+	        const  maxSize  =  5 ;
+	        const  minSize  =  1 ;
+	        让 isMoving  =  false ;
+	        let  timer  =  null ;
+	
+	        让 canvas  =  doc 。getElementById （'canvas' ）;
+	        帆布。宽度 =  maxW ;
+	        帆布。高度 =  maxH ;
+	        让 ctx  =  canvas 。getContext （'2d' ）;
+	
+	        let stars = [];      // 存放作为背景使用的星星
+	        let move_stars = []; // 存放鼠标移动时绘制的星星
+	
+	        函数 CanvasStar （num ） {
+	            这个。num  =  num ;
+	        };
+	
+	        CanvasStar 。原型 =  {
+	            渲染（） {
+	                对于 （让 我 =  0 ; 我 < 此。NUM ; 我++ ） {
+	                    让 alpha  =  Math 。随机（） +  0.1 ;
+	                    分[我]  = 新 星（我， getOneRandom （maxW ）， getOneRandom （MAXH ）， getOneRandom （MAXSIZE ， minSize属性）， 真， 阿尔法）;
+	                }
+	                动画（）;
+	            }
+	        };
+	
+	        函数 Star （id ， x ， y ， r ， isCache ， dot_alpha ） {
+	            这个。id  =  id ;
+	            这个。x  =  x ;
+	            这个。y  =  y ;
+	            这个。r  =  r ;
+	            这个。dot_alpha  =  dot_alpha ;
+	            this.show = .5;    // 作用：控制 鼠标绘制点的隐藏
+	            这个。直接 =  getOneRandom （180 ） +  180 ;
+	            这个。isCache  =  isCache ;
+	            这个。cacheCanvas  =  doc 。createElement （'canvas' ）;
+	            这个。ctx_cache  =  this 。cacheCanvas 。getContext （'2d' ）;
+	            如果（isCache ） {
+	                这个。缓存（）;
+	            }
+	        };
+	
+	        明星。原型 =  {
+	
+	            画（） {
+	                // 绘制一个Star
+	                如果（！此。isCache ） {
+	                    让 alpha  =  Math 。随机（） +  0.1 ;
+	                    ctx.save();
+	                    ctx 。beginPath （）;
+	                    ctx 。弧（此。X ， 此。ÿ ， 此。[R ， 0 ， 2 *数学。PI ， 假）;
+	                    ctx 。closePath （）;
+	                    
+	                    ctx 。shadowColor  =  '#fff' ;
+	                    ctx 。shadowBlur  =  2 *此。r ;
+	                    ctx 。填充样式 =  `RGBA（255，255，255，$ { 此。dot_alpha  }）` ;
+	                    ctx 。填充（）;
+	                    ctx 。恢复（）;
+	                }其他 {
+	                    ctx 。的drawImage （此。cacheCanvas ， 此。X  -  3 *此。[R ， 此。ÿ  -  3 *此。[R ）
+	                }
+	            },
+	
+	            移动（） {
+	                这个。y-  =  0.25 ;
+	                如果（此。ÿ  <  - 10 ） {
+	                    这个。y  =  maxH  +  10 ;
+	                }
+	                这个。画（）;
+	            },
+	
+	            // 使鼠标绘制的点抖动起来
+	            摇（arr ） {
+	                这个。显示 -=  0.01 ;
+	                如果（此。显示 <  0 ） {
+	                    回报;
+	                }
+	                让 速度 =  .5 ;
+	                这个。x  + = 数学。COS （此。直接*数学。PI / 180 ） *速度;
+	                这个。y  + = 数学。罪（此。直接*数学。PI / 180 ） *速度;
+	                这个。画（）;
+	                this.link();
+	            },
+	
+	            链接（） {
+	                如果（！此。ID ） 的回报;
+	                让 len  =  move_stars 。长度;
+	                // 关键思想：取当前id，之前的4个点，每绘制一次就向前取4个点，以此类推
+	                // 而不是move_stars最后的四个点，否则的话只有最后几个点会被连接起来
+	                让 arr  =  move_stars 。切片（此。ID  -  3 ， 此。ID ）;
+	                让 endIdx  =  arr 。长度 -  1 ;
+	
+	                ctx.save();
+	                for （让 i  =  endIdx ;  i > = 0 ;  i - ） {
+	                    如果（i  ==  endIdx  && !! arr [ endIdx ] ） {
+	                        ctx 。的moveTo （ARR [ endIdx ] 。X ， ARR [ endIdx ] 。ÿ ）;
+	                        ctx 。beginPath （）;
+	                        ctx 。了lineTo （此。X ， 此。ÿ ）;
+	                    }
+	                    如果（我！= endIdx  &&！ARR [我]  &&  ARR [我] 。显示 >  0 ） CTX 。了lineTo （ARR [我] 。X ， ARR [我] 。ÿ ）;
+	                }
+	                ctx 。closePath （）;
+	
+	                ctx 。strokeStyle  =  'rgba（255，255，255，0.125）' ;
+	                ctx 。中风（）;
+	                ctx 。恢复（）;
+	            },
+	            缓存（） {
+	                这个。cacheCanvas 。宽度 =  6 *这个。r ;
+	                这个。cacheCanvas 。高度 =  6 *这个。r ;
+	
+	                this.ctx_cache.save();
+	                这个。ctx_cache 。beginPath （）;
+	                这个。ctx_cache 。弧（此。[R * 3 ， 此。[R * 3 ， 此。[R ， 0 ， 2 *数学。PI ， 假）;
+	                这个。ctx_cache 。closePath （）;
+	
+	                这个。ctx_cache 。shadowColor  =  '#fff' ;
+	                这个。ctx_cache 。shadowBlur  =  2 *此。r ;
+	                这个。ctx_cache 。填充样式 =  `RGBA（255，255，255，$ {此。dot_alpha }）` ;
+	                这个。ctx_cache 。填充（）;
+	                这个。ctx_cache 。恢复（）;
+	            }
+	        };
+	
+	        // 动画
+	        函数 动画（） {
+	            ctx 。clearRect （0 ， 0 ， maxW ， MAXH ）;
+	            让 len  = 星。长度;
+	            对于（让 i  =  0 ;  i  <  len ;  i ++ ） {
+	                星星[我] 。移动（）;
+	            }
+	
+	            让 len2  =  move_stars 。长度;
+	            如果（isMoving ） {
+	                对于（让 i  =  0 ;  i  <  len2 ;  i ++ ） {
+	                    如果（move_stars [ i ] ） move_stars [ i ] 。摇动（move_stars ）;
+	                }
+	            }其他 {
+	                move_stars  =  [ ]
+	            }
+	            requestAnimationFrame （animate ）;
+	        };
+	
+	        // 获取区间内的随机数
+	        函数 getOneRandom （max ， min =  0 ） {
+	            返回 Math 。地板（数学。随机（） * （最大值 - 最小） + 分钟）;
+	        };
+	
+	        // 获取正负号
+	        函数 getSign （） {
+	            返回 Math 。随机（） >  .5？- 1：1 ;
+	        };
+	
+	        // 鼠标移动事件
+	        doc 。addEventListener （'mousemove' ， function （e ） {
+	            令 x  =  e 。clientX ， y  =  e 。客户;
+	            // 控制绘制密度 以及点之间的距离    两个重要的点
+	            // 密度是控制绘制的数量     dis_x = Math.abs(x - pre_star.x);
+	            // 距离是在已绘制的点基础上、控制点的间距
+	
+	            // 控制绘制密度 和 控制点之间的距离  不是一个功能哦（需要实际操作去体会， 文字很难表述~.~）
+	            // 没有控制距离的话 绘制的图形，太规则了，不够分散    x = x + getSign() * getOneRandom(50)
+	
+	            让 len  =  move_stars 。长度;
+	            让 dis_x ， dis_y ;
+	            如果（！len ） {
+	                move_stars 。推（ 新 星（len个， X ， ÿ ， getOneRandom （MAXSIZE ， 3 ）， 真， 1 ） ）;
+	            }
+	
+	            如果（move_stars [ len  -  1 ] ） {
+	                // 当前的星还没有push到move_stars里，所以上个星是move_stars[len - 1]
+	                飞行 pre_star  =  move_stars [仅 -  1 ] ;
+	                如果（pre_star ） {
+	                    dis_x  = 数学。ABS （X  -  pre_star 。X ）;
+	                    dis_y  = 数学。ABS （ý  -  pre_star 。ÿ ）;
+	                }
+	                x  =  x  +  getSign （） * getOneRandom （50 ）;
+	                y  =  y  +  getSign （） * getOneRandom （50 ）;
+	                如果（dis_x  >  5  &&  dis_y  >  5 ） move_stars 。推（ 新 星（len个， X ， ÿ ， getOneRandom （MAXSIZE ， minSize属性）， 真， 1 ） ）;
+	            }
+	
+	            isMoving  =  true ;
+	            clearInterval(timer);   // 清除上一次的定时器（此时还没触发）
+	            计时器 =  setInterval （函数（） {
+	                isMoving  =  false ;
+	                clearInterval(timer);    // 鼠标停止再清除下定时器
+	            }, 500)
+	
+	        } ， false ）;
+	
+	        窗口。CanvasStar  =  CanvasStar ;
+	    } ）（窗口， 文件）;
+	</脚本>
+	<脚本>
+	    让 canvasStar  =  new  CanvasStar （200 ）;
+	    canvasStar 。渲染（）;
+	</脚本>
+	
+	
+	<脚本>
+	/**小本本
+	 * 疑问：
+	 *   1. clientX、layerX、offsetX、pageX、screenX、x 的区别？
+	*/
+	</脚本>
+	</ html >
